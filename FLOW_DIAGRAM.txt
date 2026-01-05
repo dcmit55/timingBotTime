@@ -1,0 +1,386 @@
+```
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                   PRODUCTION WEB SYSTEM V3 - FLOW DIAGRAM                      ║
+║                          Select2 Implementation Fix                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          🔄 DATA FLOW OVERVIEW                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Laravel API (Port 8000)           PHP Proxy              JavaScript
+    ═══════════════════════           ═════════              ══════════
+           │                               │                      │
+           │  GET /api/v1/projects         │                      │
+           │◄──────────────────────────────┤                      │
+           │                               │                      │
+           │  {data: [{name, departments,  │                      │
+           │    parts}, ...]}              │                      │
+           ├──────────────────────────────►│                      │
+           │                               │                      │
+           │                               │ Unwrap 'data' key    │
+           │                               │ Return clean array   │
+           │                               ├─────────────────────►│
+           │                               │                      │
+           │  GET /api/v1/employees        │                      │ loadProjects()
+           │◄──────────────────────────────┤                      │ loadEmployees()
+           │                               │                      │
+           │  {data: [{name, department,   │                      │ projectsData[]
+           │    position}, ...]}           │                      │ employeesData[]
+           ├──────────────────────────────►│                      │
+           │                               ├─────────────────────►│
+           │                               │                      │
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    👤 USER INTERACTION FLOW - EMPLOYEE                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    User Action                 JavaScript Event             Memory State
+    ═══════════                 ════════════════             ════════════
+
+    1. Click "Employee" cell
+         │
+         ├─► pauseEditing()                                  isEditing = true
+         │                                                    autoRefresh = OFF
+         │
+         ├─► Create <select> element
+         │   Populate from employeesData[]
+         │   
+         │   Options:
+         │   ┌─────────────────────────────┐
+         │   │ -- Pilih Employee --        │
+         │   │ Jokowi (Sewing)       │ ◄── User current choice
+         │   │ Gibran (Sewing)
+         │   └─────────────────────────────┘
+         │
+         ├─► $(select).select2()                             Select2 initialized
+         │   Auto open dropdown
+         │
+    2. User selects "Jane Smith"
+         │
+         ├─► select2:change event
+         │   console.log("Jane Smith")                       (debug only)
+         │
+    3. Dropdown closes automatically
+         │
+         ├─► select2:close event
+         │   
+         │   ⭐ CRITICAL STEP:
+         │   const finalValue = $(select).val()              finalValue = "Jane Smith"
+         │   r.name = finalValue || ""                       r.name = "Jane Smith" ✅
+         │   
+         │   $(select).select2("destroy")                    Select2 destroyed
+         │   select.remove()                                 <select> removed from DOM
+         │   tdEmp.textContent = r.name                      UI shows "Jane Smith"
+         │
+         ├─► resumeEditing()                                 isEditing = false
+         │                                                    autoRefresh = ON
+         │
+    4. User clicks "Save" button
+         │
+         ├─► btnSave.onclick()
+         │   
+         │   const name = r.name                             name = "Jane Smith" ✅
+         │   
+         │   POST /server/operators_update.php
+         │   {id: 1, name: "Jane Smith", project: "...", department: "..."}
+         │   
+         │   ├─► Database UPDATE successful
+         │   │   
+         │   └─► alert("✅ Data berhasil disimpan!")         User sees confirmation!
+         │
+         └─► loadData()                                      Refresh from database
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                   📦 USER INTERACTION FLOW - PROJECT                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    User Action                 JavaScript Event             Memory State
+    ═══════════                 ════════════════             ════════════
+
+    1. Click "Project" cell
+         │
+         ├─► pauseEditing()                                  isEditing = true
+         │
+         ├─► createProjectSelect()
+         │   
+         │   Options:
+         │   ┌─────────────────────────────┐
+         │   │ -- Pilih Project --         │
+         │   │ Mickey Project              │ ◄── User selects this
+         │   │ Minnie Project              │
+         │   │ Donald Project              │
+         │   └─────────────────────────────┘
+         │
+         ├─► $(select).select2()                             Select2 initialized
+         │   Auto open dropdown
+         │
+    2. User selects "Mickey Project"
+         │
+         ├─► select2:change event
+         │   handleProjectSelect("Mickey Project")
+         │   
+         │   Find in projectsData:
+         │   projectInfo = {
+         │     name: "Mickey Project",
+         │     departments: [{name: "Sewing"}, ...],
+         │     parts: [{name: "Head"}, ...]
+         │   }
+         │   
+         │   ⭐ AUTO-FILL LOGIC:
+         │   r.department = "Sewing"                         r.department = "Sewing" ✅
+         │   r.part = "Head"                                 r.part = "Head" ✅
+         │   
+         │   tdDept.textContent = "Sewing"                   UI updated!
+         │   tdPart.textContent = "Head"                     UI updated!
+         │
+    3. Dropdown closes automatically
+         │
+         ├─► select2:close event
+         │   
+         │   ⭐ CRITICAL STEP:
+         │   const finalValue = $(select).val()              finalValue = "Mickey Project"
+         │   r.project = finalValue || ""                    r.project = "Mickey Project" ✅
+         │   
+         │   $(select).select2("destroy")                    Select2 destroyed
+         │   tdProj.textContent = r.project                  UI shows "Mickey Project"
+         │
+         ├─► resumeEditing()                                 isEditing = false
+         │
+    4. User clicks "Save" button
+         │
+         ├─► btnSave.onclick()
+         │   
+         │   const project = r.project                       project = "Mickey Project" ✅
+         │   const department = r.department                 department = "Sewing" ✅
+         │   
+         │   POST /server/operators_update.php
+         │   {id: 1, name: "...", project: "Mickey Project", department: "Sewing"}
+         │   
+         │   ├─► Database UPDATE successful
+         │   │   operators table:
+         │   │   ┌────┬──────┬─────────────────┬────────────┐
+         │   │   │ id │ name │ project         │ department │
+         │   │   ├────┼──────┼─────────────────┼────────────┤
+         │   │   │ 1  │ John │ Mickey Project  │ Sewing     │ ✅ SAVED
+         │   │   └────┴──────┴─────────────────┴────────────┘
+         │   │   
+         │   └─► alert("✅ Data berhasil disimpan!")         User confirmation!
+         │
+         └─► loadData()                                      Sync with database
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      ❌ BEFORE FIX vs ✅ AFTER FIX                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ SCENARIO 1: User Changes Employee from "John" to "Jane"                  │
+└──────────────────────────────────────────────────────────────────────────┘
+
+    ❌ BEFORE FIX:                          ✅ AFTER FIX:
+    ═════════════                           ════════════
+    
+    1. Click Employee cell                  1. Click Employee cell
+    2. Select "Jane Smith"                  2. Select "Jane Smith"
+    3. Dropdown closes                      3. Dropdown closes
+       │                                       │
+       └─► r.name = ??? (NOT UPDATED)          └─► r.name = "Jane Smith" ✅
+       └─► UI shows "John" (REVERTED!) ❌      └─► UI shows "Jane Smith" ✅
+       
+    4. Click Save                           4. Click Save
+       │                                       │
+       └─► Saves "John" (OLD VALUE) ❌         └─► Saves "Jane Smith" ✅
+                                               └─► Alert "Data berhasil disimpan!" ✅
+    
+    5. Refresh page                         5. Refresh page
+       │                                       │
+       └─► Still "John" ❌                     └─► Shows "Jane Smith" ✅
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ SCENARIO 2: User Changes Project to Auto-fill Department                 │
+└──────────────────────────────────────────────────────────────────────────┘
+
+    ❌ BEFORE FIX:                          ✅ AFTER FIX:
+    ═════════════                           ════════════
+    
+    1. Click Project cell                   1. Click Project cell
+    2. Select "Mickey Project"              2. Select "Mickey Project"
+       │                                       │
+       └─► Department: (empty) ❌              ├─► r.department = "Sewing" ✅
+       └─► Part: (empty) ❌                    ├─► r.part = "Head" ✅
+                                               ├─► tdDept shows "Sewing" ✅
+                                               └─► tdPart shows "Head" ✅
+       
+    3. Dropdown closes                      3. Dropdown closes
+       │                                       │
+       └─► r.project = ??? (NOT SAVED) ❌      └─► r.project = "Mickey Project" ✅
+       └─► UI reverts to old value ❌          └─► UI shows "Mickey Project" ✅
+       
+    4. Click Save                           4. Click Save
+       │                                       │
+       └─► Saves old project ❌                ├─► Saves "Mickey Project" ✅
+       └─► Department not saved ❌             ├─► Saves "Sewing" (department) ✅
+       └─► No feedback ❌                      └─► Alert "Data berhasil disimpan!" ✅
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         🔍 TECHNICAL DETAILS                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ WHY VALUES REVERTED BEFORE? (Root Cause Analysis)                        │
+└──────────────────────────────────────────────────────────────────────────┘
+
+    PROBLEM:
+    ════════
+    $(select).on("select2:close", () => {
+        $(select).select2("destroy");        ◄─── 1. Destroy Select2 first
+        const val = $(select).val();         ◄─── 2. Try to get value (null!)
+        r.project = val;                     ◄─── 3. r.project = null ❌
+        tdProj.textContent = val || r.project; ◄─── 4. Shows old r.project value
+    });
+    
+    RESULT: Value reverted to original because:
+    - destroy() removes jQuery data
+    - val() returns null after destroy
+    - UI shows old value from memory
+    
+    
+    SOLUTION:
+    ═════════
+    $(select).on("select2:close", () => {
+        const val = $(select).val();         ◄─── 1. Get value FIRST ✅
+        r.project = val || "";               ◄─── 2. Save to memory ✅
+        $(select).select2("destroy");        ◄─── 3. Destroy after saving
+        tdProj.textContent = r.project;      ◄─── 4. Show saved value ✅
+    });
+    
+    RESULT: Value persists because:
+    - val() called BEFORE destroy
+    - r.project updated with new value
+    - UI shows new value from memory
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ DATABASE FLOW                                                             │
+└──────────────────────────────────────────────────────────────────────────┘
+
+    Frontend (JavaScript)      ═══►    Backend (PHP)       ═══►    Database
+    ═════════════════════              ══════════════              ════════
+    
+    btnSave.onclick()
+      │
+      ├─► Collect values:
+      │   - name: r.name          
+      │   - project: r.project    
+      │   - department: r.department
+      │
+      ├─► POST fetch()                  operators_update.php
+      │                                   │
+      │                                   ├─► Receive POST data
+      │                                   │   $id = $_POST['id']
+      │                                   │   $name = $_POST['name']
+      │                                   │   $project = $_POST['project']
+      │                                   │   $department = $_POST['department']
+      │                                   │
+      │                                   ├─► Prepare SQL:
+      │                                   │   UPDATE operators
+      │                                   │   SET name = ?,
+      │                                   │       project = ?,
+      │                                   │       department = ?
+      │                                   │   WHERE id = ?
+      │                                   │
+      │                                   ├─► Execute                MySQL
+      │                                   │                         ┌───────────┐
+      │                                   └────────────────────────►│ operators │
+      │                                                             │ ┌────────┐│
+      │   Response: {success: true}  ◄─────────────────────────────│ │ UPDATED││
+      │                                                             │ └────────┘│
+      ├─► alert("✅ Data berhasil disimpan!")                      └───────────┘
+      │
+      └─► loadData() - Refresh table from database
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          📊 STATE DIAGRAM                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    ┌──────────────┐
+    │   INITIAL    │  Page Load: loadProjects(), loadEmployees()
+    │    STATE     │  projectsData[] & employeesData[] populated
+    └──────┬───────┘
+           │
+           │ User clicks Employee/Project cell
+           ▼
+    ┌──────────────┐
+    │   EDITING    │  isEditing = true
+    │    MODE      │  autoRefresh = OFF
+    │              │  Select2 dropdown shown
+    └──────┬───────┘
+           │
+           │ User selects value
+           ▼
+    ┌──────────────┐
+    │  SELECTED    │  r.name / r.project updated ⭐
+    │   VALUE      │  Select2 destroyed
+    │   STORED     │  UI updated with new value
+    └──────┬───────┘
+           │
+           │ resumeEditing()
+           ▼
+    ┌──────────────┐
+    │   READY TO   │  isEditing = false
+    │     SAVE     │  autoRefresh = ON
+    │              │  Value persists in r object
+    └──────┬───────┘
+           │
+           │ User clicks Save button
+           ▼
+    ┌──────────────┐
+    │   SAVING     │  POST to server
+    │              │  Database UPDATE
+    └──────┬───────┘
+           │
+           │ Success
+           ▼
+    ┌──────────────┐
+    │   SAVED      │  alert("✅ Data berhasil disimpan!")
+    │              │  loadData() - Sync with database
+    └──────┬───────┘
+           │
+           │ Data refreshed
+           ▼
+    ┌──────────────┐
+    │   INITIAL    │  Back to initial state
+    │    STATE     │  Ready for next edit
+    └──────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                              🎯 KEY TAKEAWAYS
+═══════════════════════════════════════════════════════════════════════════════
+
+1. ⭐ ALWAYS update r object BEFORE destroying Select2
+   - Get value: const val = $(select).val()
+   - Save to memory: r.property = val
+   - Then destroy: $(select).select2("destroy")
+
+2. ⭐ Auto-fill happens in select2:change event
+   - Find project in projectsData
+   - Extract department and part from arrays
+   - Update r object and UI immediately
+
+3. ⭐ Success feedback is critical for UX
+   - alert() shows user the operation succeeded
+   - Without it, user doesn't know if save worked
+
+4. ⭐ jQuery must load BEFORE Select2
+   - Remove defer attribute
+   - Load order: jQuery → Select2 → script.js
+
+═══════════════════════════════════════════════════════════════════════════════
+```

@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Production Display (Active Only)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #161a22;
+      --text: #e8eef9;
+      --muted: #8a98b3;
+      --ok: #2bb673;
+      --warn: #f6c343;
+      --info: #3da2ff;
+      --fontScale: 1.0;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, "Noto Sans";
+      font-size: calc(16px * var(--fontScale));
+    }
+    .topbar {
+      position: sticky; top: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0));
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .8rem 1.2rem;
+      z-index: 10;
+    }
+    .footer{
+    flex:0 0 auto;
+    display:flex; justify-content:space-between; align-items:center;
+    gap:.8rem;
+    padding:.5rem 1rem;
+    border-top:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(0deg, rgba(255,255,255,.04), rgba(255,255,255,0));
+    color:var(--muted);
+    font-size:.9em;
+    position: fixed; left: 0; right: 0; bottom: 0;
+    }
+    body {
+    padding-bottom: 48px; /* beri ruang agar tabel tidak ketutupan footer */
+    }
+    .footer a{ color:var(--muted); text-decoration:none; }
+    .footer a:hover{ color:var(--text); }
+
+    .title { font-weight: 700; letter-spacing:.2px; }
+    .brand { display:flex; align-items:center; gap:.6rem; }
+    .logo  { height: clamp(60px, 5.8vh, 120px); width:auto; display:block; }
+    .meta { color: var(--muted); font-size: .9em; display:flex; gap:1rem; align-items:center; }
+    .meta b { color: var(--text); }
+    .controls { display:flex; gap:.5rem; align-items:center; }
+    .btn {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.1);
+      padding: .4rem .7rem; border-radius: .6rem;
+      cursor: pointer; font-weight: 600;
+    }
+    .btn:hover { border-color: rgba(122,162,247,.6); }
+    .container { padding: 1rem; }
+    .tablewrap {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: .8rem;
+      overflow: auto;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      position: sticky; top: 0;
+      background: #141824;
+      text-align: left; font-weight: 700; color: var(--muted);
+      padding: .7rem .8rem; border-bottom: 1px solid rgba(255,255,255,.08);
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: .6rem .8rem; border-bottom: 1px solid rgba(255,255,255,.06);
+      white-space: nowrap;
+    }
+    tbody tr:nth-child(odd) { background: rgba(255,255,255,.01); }
+    .qty { font-variant-numeric: tabular-nums; font-weight: 700; }
+    .status { padding: .15rem .5rem; border-radius: .5rem; font-weight: 700; font-size: .9em; }
+    .st-pending { background: rgba(246,195,67,.15); color: var(--warn); }
+    .st-running { background: rgba(61,162,255,.12); color: var(--info); }
+    .st-complete { background: rgba(43,182,115,.18); color: var(--ok); }
+    .faded { color: var(--muted); }
+    .row-hot { outline: 1px solid rgba(122,162,247,.35); background: rgba(122,162,247,.05) !important; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+  <img src="public/logo.png" alt="Company Logo" class="logo">
+  <div class="title"><span class="faded">Active Work Display</span></div>
+</div>
+
+    <div class="meta">
+      <span>Last update: <b id="lastUpdate">—</b></span>
+      <span>Auto-refresh: <b id="autoState">SSE</b></span>
+      <div class="controls">
+        <button class="btn" id="btnRefresh">Refresh</button>
+        <button class="btn" id="btnBigger">A+</button>
+        <button class="btn" id="btnSmaller">A-</button>
+        <button class="btn" id="btnFullscreen">Fullscreen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="tablewrap">
+      <table id="displayTable" aria-label="Production Display">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Project</th>
+            <th>Department</th>
+            <th>Step</th>
+            <th>Part</th>
+            <th>Employee</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Qty</th>
+            <th>Status</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td class="faded" colspan="11">Waiting for activity…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+    <!-- Footer credit -->
+  <div class="footer">
+    <div>Credit by <a href="#" rel="noopener">Mascot Enterprise – Animatronic Team & IT Team </a></div>
+    <div>© <span id="year"></span></div>
+  </div>
+
+  <script>
+    // tahun otomatis
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
+
+
+  <script>
+    const api = 'server';
+    let sse, pollId = null, fontScale = 1.0;
+
+    function setLastUpdate(ts = Date.now()) {
+      document.getElementById('lastUpdate').textContent = new Date(ts).toLocaleString();
+    }
+    function setAutoState(s) { document.getElementById('autoState').textContent = s; }
+    const fmtTime = (s) => s ? new Date(s.replace(' ', 'T')).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+
+    // normalisasi status (sinkron dgn index)
+    function statusInfo(r) {
+      let raw = (r.status ?? ((r.count ?? 0) > 0 ? 'complete' : 'pending')).toString().trim();
+      const low = raw.toLowerCase();
+      if (low.includes('complete') || low.includes('done')) return { cls:'st-complete', text: raw || 'complete' };
+      if (low.includes('progress') || low.includes('progres') || low.includes('running')) return { cls:'st-running', text: raw || 'on progress' };
+      return { cls:'st-pending', text: raw || 'pending' };
+    }
+
+    function renderRows(rows) {
+      const tb = document.getElementById('tbody');
+      tb.innerHTML = '';
+
+      // === FILTER: hanya yang sudah counting (qty > 0) ===
+      const active = Array.isArray(rows) ? rows.filter(r => (r.count || 0) > 0) : [];
+
+      if (active.length === 0) {
+        tb.innerHTML = '<tr><td class="faded" colspan="11">Waiting for activity…</td></tr>';
+        return;
+      }
+
+      // Urutkan: qty desc → project → name
+      active.sort((a,b) => (b.count||0)-(a.count||0)
+        || String(a.project||'').localeCompare(String(b.project||''))
+        || String(a.name||a.code||'').localeCompare(String(b.name||b.code||'')));
+
+      const todayStr = new Date().toLocaleDateString();
+
+      for (const r of active) {
+        const tr = document.createElement('tr');
+        tr.classList.add('row-hot');
+
+        const td = (t) => { const x = document.createElement('td'); x.textContent = t; return x; };
+
+        const s = statusInfo(r);
+        const statusTd = document.createElement('td');
+        const badge = document.createElement('span');
+        badge.className = 'status ' + s.cls;
+        badge.textContent = s.text;
+        statusTd.appendChild(badge);
+
+        tr.append(
+          td(todayStr),
+          td(r.project || ''),
+          td(r.department || 'costume'),
+          td(r.step ?? 'Counting'),
+          td(r.part ?? ''),
+          td((r.name && r.name.trim()) ? r.name : (r.code || '')),
+          td(fmtTime(r.first_hit)),
+          td(fmtTime(r.last_hit)),
+          (()=>{ const x=td(r.count ?? 0); x.classList.add('qty'); return x; })(),
+          statusTd,
+          td(r.remarks ?? '')
+        );
+        tb.appendChild(tr);
+      }
+      setLastUpdate();
+    }
+
+    async function loadData() {
+      const res = await fetch(`${api}/dashboard_get.php`, { cache: 'no-store' });
+      const data = await res.json();
+      renderRows(data);
+    }
+
+    function startSSE() {
+      if (typeof EventSource === 'undefined') { startPolling(); return; }
+      try {
+        sse = new EventSource(`${api}/events.php`);
+        sse.onopen = () => setAutoState('SSE');
+        sse.onmessage = () => loadData();
+        sse.onerror = () => { try { sse.close(); } catch{}; sse=null; startPolling(); };
+      } catch { startPolling(); }
+    }
+
+    function startPolling() {
+      setAutoState('Polling');
+      if (pollId) clearInterval(pollId);
+      pollId = setInterval(loadData, 3000);
+    }
+
+    // Controls
+    document.getElementById('btnRefresh').addEventListener('click', loadData);
+    document.getElementById('btnBigger').addEventListener('click', () => {
+      fontScale = Math.min(2.0, fontScale + 0.1);
+      document.documentElement.style.setProperty('--fontScale', String(fontScale));
+    });
+    document.getElementById('btnSmaller').addEventListener('click', () => {
+      fontScale = Math.max(0.6, fontScale - 0.1);
+      document.documentElement.style.setProperty('--fontScale', String(fontScale));
+    });
+    document.getElementById('btnFullscreen').addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+      else document.exitFullscreen().catch(()=>{});
+    });
+
+    // Boot
+    (async function boot(){
+      await loadData();
+      startSSE();
+    })();
+  </script>
+</body>
+</html>
