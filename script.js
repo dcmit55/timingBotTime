@@ -397,14 +397,15 @@ function renderRows(rows) {
       }
     }
 
-    const tdDate = document.createElement('td');
-    tdDate.textContent = todayStr;
-
-    // Kolom ID
+    // Kolom ID (harus di awal)
     const tdId = document.createElement('td');
     tdId.textContent = r.id || '';
     tdId.style.fontWeight = '600';
     tdId.style.color = '#666';
+
+    // Kolom Date
+    const tdDate = document.createElement('td');
+    tdDate.textContent = todayStr;
 
     const tdProj = document.createElement('td');
     tdProj.textContent = r.project || '';
@@ -1031,7 +1032,7 @@ function renderRows(rows) {
     // };
 
     tdAct.append(btnSave, btnPlus, btnLog);
-    tr.append(tdDate, tdId, tdProj, tdDept, tdStep, tdPart, tdEmp, tdStart, tdEnd, tdQty, tdStat, tdRem, tdAct);
+    tr.append(tdId, tdDate, tdProj, tdDept, tdStep, tdPart, tdEmp, tdStart, tdEnd, tdQty, tdStat, tdRem, tdAct);
     tb.appendChild(tr);
   });
 }
