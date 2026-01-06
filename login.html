@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- ====================================================================
+         AUTHENTICATION PAGE - Login
+         Description: Halaman login dengan UI full background image
+         Design: Inspired by modern beach/travel login pages
+         Features: Email/password login only (register disabled)
+         Security: Token-based authentication dengan session management
+         ==================================================================== -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Mascot Enterprise Production System</title>
+
+    <!-- Custom CSS untuk full background design -->
+    <link rel="stylesheet" href="login-style.css" />
+  </head>
+  <body>
+    <!-- ====================================================================
+         BACKGROUND IMAGE - Full screen beach image
+         ==================================================================== -->
+    <div class="background-image"></div>
+
+    <!-- ====================================================================
+         LOGIN CONTAINER - Overlay card di kanan
+         ==================================================================== -->
+    <div class="login-container">
+      <!-- Login Card di kiri -->
+      <div class="login-card">
+        <h2>Login</h2>
+        <p class="subtitle">Don't have an account? <a href="#" id="signupLink" class="signup-link">Create your account</a>, it takes less than a minute.</p>
+
+        <form id="loginForm" autocomplete="off">
+          <!-- Email Input -->
+          <div class="form-group">
+            <label for="email">EMAIL</label>
+            <input type="email" id="email" name="email" placeholder="enter your email" required autocomplete="email" />
+          </div>
+
+          <!-- Password Input -->
+          <div class="form-group">
+            <label for="password">PASSWORD</label>
+            <div class="password-wrapper">
+              <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password" />
+              <button type="button" class="toggle-password" id="togglePassword" title="Show/Hide Password" tabindex="-1" 👁️></button>
+            </div>
+          </div>
+
+          <!-- Remember Me -->
+          <div class="form-options">
+            <label class="remember-me">
+              <input type="checkbox" id="rememberMe" name="rememberMe" />
+              <span>I Accept terms and conditions & privacy policy</span>
+            </label>
+          </div>
+
+          <!-- Login Button -->
+          <button type="submit" class="btn-login" id="loginBtn">
+            <span class="btn-text">LOGIN</span>
+            <span class="btn-loading" style="display: none">Logging in...</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Welcome Text di kanan (dengan typing effect) -->
+      <div class="welcome-overlay">
+        <h1 id="typingText"></h1>
+        <p id="descriptionText"></p>
+      </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+      // Typing effect untuk "Sewing Time Log"
+      const titleText = 'Sewing Time\nLog';
+      const descriptionText = 'This system is used to record the start and end time of sewing work and calculate daily production quantity automatically';
+      const typingElement = document.getElementById('typingText');
+      const descriptionElement = document.getElementById('descriptionText');
+      let titleCharIndex = 0;
+      let descCharIndex = 0;
+
+      // Typing untuk title (100ms per karakter)
+      function typeTitle() {
+        if (titleCharIndex < titleText.length) {
+          const char = titleText.charAt(titleCharIndex);
+          if (char === '\n') {
+            typingElement.innerHTML += '<br>';
+          } else {
+            typingElement.innerHTML += char;
+          }
+          titleCharIndex++;
+          setTimeout(typeTitle, 100);
+        } else {
+          // Setelah title selesai, mulai typing description
+          setTimeout(typeDescription, 200);
+        }
+      }
+
+      // Typing untuk description (50ms per karakter - lebih cepat)
+      function typeDescription() {
+        if (descCharIndex < descriptionText.length) {
+          descriptionElement.innerHTML += descriptionText.charAt(descCharIndex);
+          descCharIndex++;
+          setTimeout(typeDescription, 50); // Speed lebih cepat: 50ms per karakter
+        }
+      }
+
+      // Mulai typing title setelah 300ms
+      setTimeout(typeTitle, 300);
+    </script>
+    <script src="login.js"></script>
+  </body>
+</html>

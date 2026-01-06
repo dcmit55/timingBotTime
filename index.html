@@ -8,14 +8,96 @@
 
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <!-- ====================================================================
+         AUTHENTICATION CHECK SCRIPT
+         Purpose: Protect halaman ini dari akses tanpa login
+         Process:
+           1. Check token di sessionStorage atau localStorage
+           2. Jika tidak ada token, redirect ke login.html
+           3. Verify token dengan server (auth_verify.php)
+           4. Jika token invalid/expired, redirect ke login.html
+           5. Jika valid, simpan user data dan lanjut load page
+         Note: Script ini harus dijalankan SEBELUM content lainnya load
+         ==================================================================== -->
+    <script>
+      // IIFE (Immediately Invoked Function Expression) untuk isolate scope
+      (function () {
+        // Get token dari sessionStorage (prioritas) atau localStorage (remember me)
+        const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+
+        // Jika tidak ada token, langsung redirect ke login
+        if (!token) {
+          window.location.href = 'login.html';
+          return;
+        }
+
+        // Set flag bahwa auth sedang diverifikasi
+        window.authVerifying = true;
+        window.authReady = false;
+
+        // Verify token validity dengan server
+        fetch('server/auth_verify.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            // Jika token tidak valid atau expired
+            if (data.status !== 'success') {
+              // Clear storage dan redirect ke login
+              sessionStorage.clear();
+              localStorage.removeItem('auth_token');
+              window.location.href = 'login.html';
+            } else {
+              // Token valid, simpan user data untuk digunakan di page
+              window.currentUser = data.user;
+              window.authReady = true;
+              window.authVerifying = false;
+              console.log('[Auth] Authenticated as:', data.user.name);
+
+              // Trigger custom event untuk notify bahwa auth sudah ready
+              window.dispatchEvent(new Event('authReady'));
+            }
+          })
+          .catch((err) => {
+            // Network error atau server error, redirect ke login untuk safety
+            console.error('[Auth] Verification failed:', err);
+            window.location.href = 'login.html';
+          });
+      })();
+    </script>
   </head>
   <body>
+    <!-- ====================================================================
+         TOPBAR - Header dengan title, datetime, user info, dan logout
+         Layout: Flexbox dengan space-between
+         Right side: User info + datetime + logout button (vertical stack)
+         ==================================================================== -->
     <div class="topbar">
       <h1>Mascot Enterprise (Aggregated per Operator)</h1>
-      <div id="datetime"></div>
+
+      <!-- Right side: User Info, DateTime, dan Logout -->
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px">
+        <!-- User Info -->
+        <span id="userInfo" style="color: #666; font-weight: 500; font-size: 14px">
+          <!-- Will be populated by JavaScript -->
+        </span>
+
+        <!-- DateTime dan Logout Button -->
+        <div style="display: flex; align-items: center; gap: 12px">
+          <div id="datetime"></div>
+          <button id="logoutBtn" class="btn-logout" style="padding: 6px 12px; font-size: 13px">Logout</button>
+        </div>
+      </div>
     </div>
 
+    <!-- ====================================================================
+         CONTROLS SECTION - Dashboard action buttons
+         ==================================================================== -->
     <div class="controls">
+      <button id="displayTvBtn" class="btn-display">Display TV</button>
       <button id="addBtn">Add Operator</button>
       <button id="refreshBtn">Refresh</button>
       <button id="exportTimingBtn">Export Input Timing (CSV)</button>
@@ -31,6 +113,7 @@
     <table id="opsTable">
       <thead>
         <tr>
+          <th>ID</th>
           <th>Date</th>
           <th>Project</th>
           <th>Department</th>

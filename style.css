@@ -1,16 +1,111 @@
-body { font-family: Arial, Helvetica, sans-serif; margin:0; padding:12px; background:#fafafa; color:#222; }
-.topbar { display:flex; justify-content:space-between; align-items:center; padding-bottom:12px; border-bottom:1px solid #dadada; }
-h1 { margin:0; font-size:1.25rem; }
-#datetime { font-weight:600; }
-.controls { display:flex; gap:12px; margin:12px 0; }
-button { padding:8px 14px; border:1px solid #dadada; background:#fff; border-radius:8px; cursor:pointer; }
-button:hover { background:#f4f4f4; }
-button.danger { border-color:#c44; color:#c00; }
-table { width:100%; border-collapse:collapse; background:#fff; border:1px solid #dadada; border-radius:8px; overflow:hidden; }
-th,td { border-bottom:1px solid #dadada; padding:10px; text-align:left; }
-thead th { background:#f0f0f0; }
-tbody tr:nth-child(even) { background:#fcfcfc; }
-td.editing { background:#fff9d9; }
-.hint { color:#666; margin:6px 0 12px; }
-.actionbar { display:flex; gap:8px; align-items:center; }
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 12px;
+    background: #fafafa;
+    color: #222;
+}
 
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #dadada;
+}
+
+h1 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+#datetime {
+    font-weight: 600;
+}
+
+.controls {
+    display: flex;
+    gap: 12px;
+    margin: 12px 0;
+}
+
+button {
+    padding: 8px 14px;
+    border: 1px solid #dadada;
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #f4f4f4;
+}
+
+button.danger {
+    border-color: #c44;
+    color: #c00;
+}
+
+/* Logout button - Red */
+button.btn-logout {
+    background: #dc3545;
+    color: white;
+    border-color: #dc3545;
+    font-weight: 600;
+}
+
+button.btn-logout:hover {
+    background: #c82333;
+    border-color: #bd2130;
+}
+
+/* Display TV button - Navy Blue */
+button.btn-display {
+    background: #001f3f;
+    color: white;
+    border-color: #001f3f;
+    font-weight: 600;
+}
+
+button.btn-display:hover {
+    background: #003366;
+    border-color: #003366;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #dadada;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    border-bottom: 1px solid #dadada;
+    padding: 10px;
+    text-align: left;
+}
+
+thead th {
+    background: #f0f0f0;
+}
+
+tbody tr:nth-child(even) {
+    background: #fcfcfc;
+}
+
+td.editing {
+    background: #fff9d9;
+}
+
+.hint {
+    color: #666;
+    margin: 6px 0 12px;
+}
+
+.actionbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}

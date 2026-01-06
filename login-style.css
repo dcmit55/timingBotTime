@@ -1,0 +1,467 @@
+/* ============================================================================
+   LOGIN PAGE STYLING - Full Background Design
+   Description: Modern login dengan full beach background image
+   Design: Inspired by travel/beach login pages
+   Layout: Full background image dengan login card overlay di kanan
+   ============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   CSS VARIABLES
+   ---------------------------------------------------------------------------- */
+:root {
+    /* Primary Colors */
+    --primary: #ff4757;
+    --primary-dark: #ee5a6f;
+    --text-dark: #2d3436;
+    --text-muted: #636e72;
+    --white: #ffffff;
+    --border: #dfe6e9;
+    --error: #ef4444;
+    --success: #10b981;
+
+    /* Social Media Colors */
+    --facebook: #3b5998;
+    --twitter: #1da1f2;
+    --google: #db4437;
+}
+
+/* ----------------------------------------------------------------------------
+   GLOBAL RESET
+   ---------------------------------------------------------------------------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ----------------------------------------------------------------------------
+   BODY & BACKGROUND IMAGE
+   Full screen background dengan beach image
+   ---------------------------------------------------------------------------- */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Background Image - Full screen */
+.background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('assets/sewing.jpg') center/cover no-repeat;
+    z-index: -1;
+}
+
+/* Overlay gelap transparan untuk readability text */
+.background-image::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+/* ----------------------------------------------------------------------------
+   MAIN LOGIN CONTAINER
+   Split layout: Welcome text kiri, Login card kanan
+   ---------------------------------------------------------------------------- */
+.login-container {
+    display: flex;
+    height: 100vh;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 80px;
+    max-width: 1400px;
+    margin: 0 auto;
+    gap: 60px;
+}
+
+/* ----------------------------------------------------------------------------
+   WELCOME OVERLAY (Kanan) - "Hello World" dengan Typing Effect
+   ---------------------------------------------------------------------------- */
+.welcome-overlay {
+    flex: 0 0 auto;
+    color: var(--white);
+    max-width: 500px;
+    position: relative;
+    z-index: 2;
+    order: 2;
+}
+
+.welcome-overlay h1 {
+    font-size: 72px;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5);
+    min-height: 160px;
+    position: relative;
+}
+
+/* Cursor blinking */
+.welcome-overlay h1::after {
+    content: '|';
+    display: inline-block;
+    color: var(--white);
+    margin-left: 5px;
+    animation: blink 0.7s infinite;
+}
+
+@keyframes blink {
+    0%, 50% {
+        opacity: 1;
+    }
+
+    51%, 100% {
+        opacity: 0;
+    }
+}
+
+.welcome-overlay p {
+    font-size: 16px;
+    line-height: 1.6;
+    opacity: 0.95;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    min-height: 80px;
+    position: relative;
+}
+
+/* ----------------------------------------------------------------------------
+   LOGIN CARD (Kiri) - Dengan Slide Up Animation
+   White card dengan form login
+   ---------------------------------------------------------------------------- */
+.login-card {
+    background: var(--white);
+    padding: 50px 45px;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 480px;
+    position: relative;
+    z-index: 2;
+    order: 1;
+    flex-shrink: 0;
+    animation: slideUp 0.8s ease-out forwards;
+    opacity: 0;
+}
+
+/* Slide up animation dari bawah */
+@keyframes slideUp {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.login-card h2 {
+    font-size: 32px;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+.signup-link {
+    color: #2196F3;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.signup-link:hover {
+    text-decoration: underline;
+}
+
+/* ----------------------------------------------------------------------------
+   FORM ELEMENTS
+   ---------------------------------------------------------------------------- */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: var(--white);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.1);
+}
+
+.form-group input::placeholder {
+    color: #b2bec3;
+}
+
+/* Password wrapper dengan toggle button */
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    padding-right: 45px;
+    /* Beri ruang untuk icon */
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 20px;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    padding: 4px 8px;
+    border-radius: 4px;
+    user-select: none;
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-transition: all 0.2s ease;
+    -moz-transition: all 0.2s ease;
+    -ms-transition: all 0.2s ease;
+    -o-transition: all 0.2s ease;
+}
+
+.toggle-password:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.05) !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.toggle-password:active {
+    transform: translateY(-50%) scale(0.9);
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.toggle-password:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.toggle-password:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+/* ----------------------------------------------------------------------------
+   FORM OPTIONS (Remember me / Terms)
+   ---------------------------------------------------------------------------- */
+.form-options {
+    margin-bottom: 25px;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.remember-me input[type="checkbox"] {
+    width: auto;
+    cursor: pointer;
+}
+
+/* ----------------------------------------------------------------------------
+   LOGIN BUTTON
+   ---------------------------------------------------------------------------- */
+.btn-login {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 71, 87, 0.4);
+}
+
+.btn-login:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ----------------------------------------------------------------------------
+   SOCIAL LOGIN
+   ---------------------------------------------------------------------------- */
+.social-text {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 15px;
+}
+
+.social-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.btn-social {
+    padding: 10px 8px;
+    border: none;
+    border-radius: 6px;
+    color: var(--white);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-social:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-social.facebook {
+    background: var(--facebook);
+}
+
+.btn-social.twitter {
+    background: var(--twitter);
+}
+
+.btn-social.google {
+    background: var(--google);
+}
+
+.btn-social:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ----------------------------------------------------------------------------
+   ALERT MESSAGES
+   ---------------------------------------------------------------------------- */
+.alert {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    display: none;
+}
+
+.alert.show {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+.alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.alert-success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ----------------------------------------------------------------------------
+   RESPONSIVE DESIGN
+   ---------------------------------------------------------------------------- */
+@media (max-width: 968px) {
+    .login-container {
+        padding: 20px;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .welcome-overlay {
+        display: none;
+    }
+
+    .login-card {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-card {
+        padding: 30px 25px;
+    }
+
+    .login-card h2 {
+        font-size: 24px;
+    }
+
+    .social-buttons {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================================
+   END OF STYLES
+   ============================================================================ */
